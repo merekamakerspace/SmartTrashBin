@@ -1,7 +1,10 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-
 #define MQTT_VERSION MQTT_VERSION_3_1_1
+
+//Time in seconds the board will be in deep sleep mode. 
+const unsigned long int sleepTimeSeconds = 300; //5 minutes
+//Max sleep time is 4,294,967,295 µs, which is about ~71 minutes
 
 //Ultrasonic sensor
 const int minDistance = 10; //Distance from trash to sensor set for full trash bin
@@ -21,9 +24,6 @@ const char* password = "whatwillyoumake?";
 const char* mqtt_server = "192.168.0.210";
 const char* outTopic = "bin/recycle";
 const char* outTopicLight = "bin/light";
-
-const unsigned long int sleepTimeSeconds = 30; //time in seconds the board will be in deep sleep mode. 
-//Max sleep time is 4,294,967,295 µs, which is about ~71 minutes
 
 char msg[50];
 
