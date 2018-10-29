@@ -8,25 +8,16 @@ const unsigned long int sleepTimeSeconds = 300; //5 minutes
 
 //Ultrasonic sensor
 const int minDistance = 10; //Distance from trash to sensor set for full trash bin
-const int trigPin = 2;  //D4
-const int echoPin = 0;  //D3
-
-//Light sensor
-unsigned int lightAnalogValue;
-
-//LEDs
-const int FULL_LED = D2; //Red LED
-const int OK_LED = D1;  //Green LED
+const int trigPin = D7;
+const int echoPin = D4;
 
 //Network values
 const char* ssid = "MeReka Wifi";
 const char* password = "whatwillyoumake?";
 const char* mqtt_server = "192.168.0.210";
 const char* outTopic = "bin/recycle";
-const char* outTopicLight = "bin/light";
 
 char msg[50];
-
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -59,14 +50,6 @@ void sendMessage(const char* content){
       client.publish(outTopic, msg);
 }
 
-void sendMessage2(const char* content){
-      char msg[50];
-      snprintf (msg, 75, content);
-      Serial.print("Publish message: ");
-      Serial.println(msg);
-      client.publish(outTopicLight, msg);
-}
-
 int detectDistance(){
   long duration, distance;
   digitalWrite(trigPin, LOW);
@@ -77,20 +60,6 @@ int detectDistance(){
   duration = pulseIn(echoPin, HIGH);
   distance = (duration/2) / 29.1;  
   return distance;
-}
-
-boolean isLightOn(unsigned int lightAnalogValue){
-  return lightAnalogValue < 950;
-}
-
-void setLedsOK(){  
-  digitalWrite(FULL_LED,LOW); //Turn FULL LED OFF
-  digitalWrite(OK_LED,HIGH); //Turn OK LED ON
-}
-
-void setLedsFull(){  
-  digitalWrite(FULL_LED,HIGH); //Turn FULL LED ON
-  digitalWrite(OK_LED,LOW); //Turn OK LED OFF
 }
 
 void sleep(){
@@ -129,23 +98,16 @@ void setup_wifi() {
 void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);  
-  pinMode(FULL_LED, OUTPUT);     // Initialize the FULL_LED pin as an output
-  pinMode(OK_LED, OUTPUT);     // Initialize the FULL_LED pin as an output
-  
+    
   Serial.begin(115200);
   Serial.setTimeout(2000);
-
-  //  Enable light sleep
-  wifi_set_sleep_type(LIGHT_SLEEP_T);
-  
+    
   // Wait for serial to initialize.
   while(!Serial) { }
   
   setup_wifi();
   client.setServer(mqtt_server, 1883);
-  setLedsOK();    
   
-
   //Begin sensor  
   if (!client.connected()) {
     reconnect();    
@@ -154,40 +116,27 @@ void setup() {
 
   //Check trash level
   long distance = detectDistance();
-  
-  //Check lights
-  lightAnalogValue = analogRead(A0);
-  
+      
   delay(100);  //wait for publishing messages
   char cstr[16];
   if (distance < minDistance) {  // This is where the LED On/Off happens
-    Serial.println("Trash bin is FULL");
-    sendMessage ("FULL");      
-    setLedsFull();    
+    Serial.println("FULL");
+    sendMessage ("FULL");          
   }else{  
     if (distance >= 200 || distance <= 0){
       Serial.println("OUT of range");
       sendMessage ("OUT");    
     }else{    
-      //"Trash bin OK"
-      setLedsOK();
+      //"Trash bin OK"      
       Serial.print(distance);
       Serial.println(" cm");     
       
       itoa(distance, cstr, 10);
       sendMessage (cstr);          
     }
-  }      
-
-  if (isLightOn(lightAnalogValue)){
-    sendMessage2 ("ON");    
-  }else{
-    sendMessage2 ("OFF");    
-  }
-  
+  }        
   sleep(); 
 }
 
-void loop() {  
-  
+void loop() {    
 }
