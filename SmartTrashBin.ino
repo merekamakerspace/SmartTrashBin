@@ -8,8 +8,8 @@ const unsigned long int sleepTimeSeconds = 300; //5 minutes
 
 //Ultrasonic sensor
 const int minDistance = 10; //Distance from trash to sensor set for full trash bin
-const int trigPin = D7;
-const int echoPin = D4;
+const int trigPin = D4;
+const int echoPin = D7;
 
 //Network values
 const char* ssid = "MeReka Wifi";
